@@ -1,0 +1,1 @@
+username:password:10,730:hourboosting:shared_secret
