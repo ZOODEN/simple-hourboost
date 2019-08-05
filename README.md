@@ -12,7 +12,7 @@
 - Add your information
 
 >Line Format  
-username:password:gameID:customID:shared_secret
+- username:password:gameID:customID:shared_secret
 
 ---
 
