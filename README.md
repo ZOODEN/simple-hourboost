@@ -11,10 +11,10 @@
 - Open accounts.txt
 - Add your information
 
-Format:
+>Line Format
 username:password:gameID:customID:shared_secret
 
 ---
 
->gameIDs seperated by a comma
+>gameIDs seperated by a comma  
 >customID can be a string (e.g. I'm hourboosting)
