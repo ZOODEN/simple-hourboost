@@ -112,6 +112,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 
 				clients[i].on('loggedOn', function() {
 					console.log(account[0] + " - Logged In.");
+					console.log(account[0] + " - Boosting "+games[i].length+" games..");
 
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
 					clients[i].gamesPlayed(games[i]);
