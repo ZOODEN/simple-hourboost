@@ -81,10 +81,19 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				
 				login2FA();
 
+				var games_count = parseInt(games[i].length) - parseInt(1);
+
 				clients[i].on('loggedOn', function() {
 					console.log(account[0] + " - Logged In.");
-					console.log(account[0] + " - Boosting "+games[i].length+" games..");
-
+					
+					if(games_count > 1)
+					{
+						console.log(account[0] + " - Boosting "+games_count+" games..");
+					}
+					else
+					{
+						console.log(account[0] + " - Boosting "+games_count+" game..");
+					}
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
 					clients[i].gamesPlayed(games[i]);
 					
@@ -110,9 +119,19 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				
 				login();
 
+				var games_count = parseInt(games[i].length) - parseInt(1);
+
 				clients[i].on('loggedOn', function() {
 					console.log(account[0] + " - Logged In.");
-					console.log(account[0] + " - Boosting "+games[i].length+" games..");
+					
+					if(games_count > 1)
+					{
+						console.log(account[0] + " - Boosting "+games_count+" games..");
+					}
+					else
+					{
+						console.log(account[0] + " - Boosting "+games_count+" game..");
+					}
 
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
 					clients[i].gamesPlayed(games[i]);
