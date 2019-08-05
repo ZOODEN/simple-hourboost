@@ -57,6 +57,11 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 			});
 		}
 		
+		function logout()
+		{
+			clients[i].logOff();
+		}
+		
 		function checkForPlaying() {
 			clients[i].on('playingState', function(blocked, playingApp) {
 				if (blocked == true) {
@@ -87,6 +92,8 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				
 				clients[i].on('error', function(err) {
 					if (err.eresult == '6') {
+						logout();
+						
 						console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
 						setTimeout(login2FA, 5000*60);
 					}
@@ -113,6 +120,8 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				
 				clients[i].on('error', function(err) {
 					if (err.eresult == '6') {
+						logout();
+						
 						console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
 						setTimeout(login, 5000*60);
 					}
