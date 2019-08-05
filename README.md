@@ -11,7 +11,7 @@
 - Open accounts.txt
 - Add your information
 
->Line Format
+>Line Format  
 username:password:gameID:customID:shared_secret
 
 ---
