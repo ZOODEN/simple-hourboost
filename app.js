@@ -16,16 +16,6 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
     data.trim().split("\n").forEach(function(line) {
         account = line.trim().split(":");
 	
-		account[2] = account[2].split(",").map(function(game) {
-			
-			return {
-				game_id: parseInt(game, 10),
-				game_extra_info: account[3]
-			};
-			
-		});
-	
-	
 		if (accounts.includes(account) === false)
 		{
 			accounts.push(account);
@@ -34,14 +24,22 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 	})
 	
 	var clients = [];
+	var games = new Array();
+	
 	console.log("Found "+accounts.length+" Accounts.");
 	
 	var playing = false;
 
 	accounts.forEach(function(account, i) {
-		
+		games[i] = new Array();
 		clients[i] = new SteamUser();
-					
+			
+		games[i] = account[2].split(",").map(function(game) {
+			return parseInt(game, 10);
+		});
+		games[i].push(account[3]);
+		games[i].reverse();
+
 		function login2FA()
 		{
 			clients[i].logOn({
@@ -65,7 +63,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 					setTimeout(checkForPlaying, 5000);
 				} else if (blocked == false) {
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(account[2]);
+					clients[i].gamesPlayed(games[i]);
 				}
 			});
 		}
@@ -82,7 +80,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 					console.log(account[0] + " - Logged In.");
 
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(account[2]);
+					clients[i].gamesPlayed(games[i]);
 					
 					setTimeout(checkForPlaying, 1500*60);
 				});
@@ -108,7 +106,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 					console.log(account[0] + " - Logged In.");
 
 					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(account[2]);
+					clients[i].gamesPlayed(games[i]);
 					
 					setTimeout(checkForPlaying, 1500*60);
 				});
