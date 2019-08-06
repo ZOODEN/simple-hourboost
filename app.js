@@ -1,19 +1,23 @@
 const SteamUser = require('steam-user');
 const SteamTotp = require('steam-totp');
+const SteamID = require('steamid');
 const fs = require('fs');
 
 var accounts = [];
-var delay = 30*60;
+var delay = 80*60;
+var clients = [];
+var games = [];
+var games_count = [];
+var playing = [];
+
 
 fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 	if (err) 
 		throw err;
 	
-    accounts = [];
-	
-	process.setMaxListeners(50);
-	
-    data.trim().split("\n").forEach(function(line) {
+	accounts = [];
+
+	data.trim().split("\n").forEach(function(line) {
         account = line.trim().split(":");
 	
 		if (accounts.includes(account) === false)
@@ -22,45 +26,21 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 		}
 	
 	})
-	
-	var clients = [];
-	var games = new Array();
-	
-	console.log("Found "+accounts.length+" Accounts.");
-	
-	var playing = false;
 
+	console.log("Found "+accounts.length+" accounts.");
+	
 	accounts.forEach(function(account, i) {
+		
 		games[i] = new Array();
 		clients[i] = new SteamUser();
-			
+		
 		games[i] = account[2].split(",").map(function(game) {
 			return parseInt(game, 10);
 		});
+		
 		games[i].push(account[3]);
 		games[i].reverse();
-
-		function login2FA()
-		{
-			clients[i].logOn({
-				accountName: account[0],
-				password: account[1],
-				twoFactorCode: SteamTotp.generateAuthCode(account[4])
-			});
-		}
-		
-		function login()
-		{
-			clients[i].logOn({
-				accountName: account[0],
-				password: account[1]
-			});
-		}
-		
-		function logout()
-		{
-			clients[i].logOff();
-		}
+		games_count[i] = parseInt(games[i].length) - parseInt(1);
 		
 		function checkForPlaying() {
 			clients[i].on('playingState', function(blocked, playingApp) {
@@ -72,84 +52,76 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				}
 			});
 		}
-				
-		if(account[4] != null)
-		{			
-			setTimeout(function() {		
-			
-				console.log(account[0] + " - Logging in with 2FA.");	
-				
-				login2FA();
-
-				var games_count = parseInt(games[i].length) - parseInt(1);
-
-				clients[i].on('loggedOn', function() {
-					console.log(account[0] + " - Logged In.");
-					
-					if(games_count > 1)
-					{
-						console.log(account[0] + " - Boosting "+games_count+" games..");
-					}
-					else
-					{
-						console.log(account[0] + " - Boosting "+games_count+" game..");
-					}
-					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(games[i]);
-					
-					setTimeout(checkForPlaying, 1500*60);
-				});
-				
-				clients[i].on('error', function(err) {
-					if (err.eresult == '6') {
-						logout();
-						
-						console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
-						setTimeout(login2FA, 5000*60);
-					}
-				});
-				
-			}, delay * i);
-		}
-		else
+		
+		function login()
 		{
-			setTimeout(function() {		
-			
-				console.log(account[0] + " - Logging in.");	
-				
-				login();
-
-				var games_count = parseInt(games[i].length) - parseInt(1);
-
-				clients[i].on('loggedOn', function() {
-					console.log(account[0] + " - Logged In.");
-					
-					if(games_count > 1)
-					{
-						console.log(account[0] + " - Boosting "+games_count+" games..");
-					}
-					else
-					{
-						console.log(account[0] + " - Boosting "+games_count+" game..");
-					}
-
-					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(games[i]);
-					
-					setTimeout(checkForPlaying, 1500*60);
+			if(account[4] != null)
+			{
+				console.log(account[0] + " - Logging in with 2FA..");	
+				clients[i].logOn({
+					accountName: account[0],
+					password: account[1],
+					twoFactorCode: SteamTotp.generateAuthCode(account[4])
 				});
-				
-				clients[i].on('error', function(err) {
-					if (err.eresult == '6') {
-						logout();
-						
-						console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
-						setTimeout(login, 5000*60);
-					}
+			}
+			else
+			{
+				console.log(account[0] + " - Logging in..");	
+				clients[i].logOn({
+					accountName: account[0],
+					password: account[1]
 				});
-				
-			}, delay * i);
+			}
 		}
+				
+		setTimeout(function() {
+			
+			login();
+
+			clients[i].on('loggedOn', function() {
+				
+				clients[i].setPersona(SteamUser.EPersonaState.Online);
+				
+				setTimeout(function() {
+					
+					clients[i].getPersonas([clients[i].steamID], function (personas) {
+						if(personas[clients[i].steamID].gameid == 0)
+						{
+							if(games_count[i] > 1)
+							{
+								console.log(account[0] + " - Logged In. | Boosting "+games_count[i]+" games.");
+							}
+							else
+							{
+								console.log(account[0] + " - Logged In. | Boosting "+games_count[i]+" game.");
+							}
+							
+							clients[i].setPersona(SteamUser.EPersonaState.Online);
+							clients[i].gamesPlayed(games[i]);
+						}
+						else
+						{
+							console.log(account[0] + " - Logged In. | Waiting for user to stop playing..");
+							checkForPlaying();
+						}
+					});
+						
+				}, 50*60);
+				
+			});
+				
+							
+			clients[i].on('error', function(err) {
+				
+				clients[i].logOff();
+				console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
+				
+				if (err.eresult == '6') {		
+					setTimeout(login, 5000*60);
+				}
+			});
+			
+		}, delay * i);
 
 	})
 })

@@ -11,6 +11,6 @@
   "dependencies": {
     "fs": "0.0.1-security",
     "steam-totp": "^2.1.0",
-    "steam-user": "^4.12.2"
+    "steam-user": "^3.28.2"
   }
 }
