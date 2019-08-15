@@ -7,6 +7,7 @@ var accounts = [];
 var delay = 80*60;
 var clients = [];
 var games = [];
+var code = [];
 var games_count = [];
 var playing = [];
 
@@ -32,7 +33,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 	accounts.forEach(function(account, i) {
 		
 		games[i] = new Array();
-		clients[i] = new SteamUser();
+		clients[i] = new SteamUser({ promptSteamGuardCode: false });
 		
 		games[i] = account[2].split(",").map(function(game) {
 			return parseInt(game, 10);
@@ -55,7 +56,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 		
 		function login()
 		{
-			if(account[4] != null)
+			if(account[4] > 5)
 			{
 				console.log(account[0] + " - Logging in with 2FA..");	
 				clients[i].logOn({
@@ -109,12 +110,23 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				}, 50*60);
 				
 			});
-				
+			
+			clients[i].on('steamGuard', function (domain, callback) {
+				if(account[4] != null)
+				{
+					console.log(account[0] + " - Steam Guard code is needed.");
+				}
+				else
+				{
+					code[i] = account[4];
+					callback(code[i]);
+				}
+			});	
 							
 			clients[i].on('error', function(err) {
 				
 				clients[i].logOff();
-				console.log(account[0] + " - Logged out. Retrying in 5 minutes..");
+				console.log(account[0] + " - Logged out.");
 				
 				if (err.eresult == '6') {		
 					setTimeout(login, 5000*60);
