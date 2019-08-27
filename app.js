@@ -4,7 +4,7 @@ const SteamID = require('steamid');
 const fs = require('fs');
 
 var accounts = [];
-var delay = 80*60;
+var delay = 120*60;
 var clients = [];
 var games = [];
 var code = [];
@@ -48,8 +48,11 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 				if (blocked == true) {
 					setTimeout(checkForPlaying, 5000);
 				} else if (blocked == false) {
-					clients[i].setPersona(SteamUser.EPersonaState.Online);
-					clients[i].gamesPlayed(games[i]);
+					console.log(account[0] + " - Stopped playing but waiting 3 minutes before starting hourboost.");
+					setTimeout(function() {
+						clients[i].setPersona(SteamUser.EPersonaState.Online);
+						clients[i].gamesPlayed(games[i]);
+					}, 180000);
 				}
 			});
 		}
@@ -104,6 +107,8 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 						{
 							console.log(account[0] + " - Logged In. | Waiting for user to stop playing..");
 							checkForPlaying();
+							
+							clients[i].setPersona(SteamUser.EPersonaState.Offline);
 						}
 					});
 						
@@ -112,14 +117,15 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 			});
 			
 			clients[i].on('steamGuard', function (domain, callback) {
+				console.log(account[0] + " - Steam Guard code is needed.");
+				
 				if(account[4] != null)
 				{
-					console.log(account[0] + " - Steam Guard code is needed.");
+					console.log(account[0] + " - Steam Guard code not found.");
 				}
 				else
 				{
-					code[i] = account[4];
-					callback(code[i]);
+					callback(account[4]);
 				}
 			});	
 							
