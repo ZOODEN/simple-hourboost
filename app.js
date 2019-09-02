@@ -59,7 +59,7 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 		
 		function login()
 		{
-			if(account[4] > 5)
+			if(account[4] != null && account[4].includes("="))
 			{
 				console.log(account[0] + " - Logging in with 2FA..");	
 				clients[i].logOn({
@@ -119,14 +119,17 @@ fs.readFile('accounts.txt', 'utf-8', (err, data) => {
 			clients[i].on('steamGuard', function (domain, callback) {
 				console.log(account[0] + " - Steam Guard code is needed.");
 				
-				if(account[4] != null)
+				if(account[4] == null)
 				{
 					console.log(account[0] + " - Steam Guard code not found.");
+					clients[i].logOff();
 				}
 				else
 				{
 					callback(account[4]);
 				}
+				
+				
 			});	
 							
 			clients[i].on('error', function(err) {
